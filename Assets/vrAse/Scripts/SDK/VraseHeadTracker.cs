@@ -33,7 +33,7 @@ using UnityEngine;
 using System.Collections;
 
 public class VraseHeadTracker : MonoBehaviour {
-
+	
 	public bool exact = false;
 	
 	Gyroscope gyro;	
@@ -55,14 +55,14 @@ public class VraseHeadTracker : MonoBehaviour {
 			SmoothMode();
 		
 	}
-
+	
 	//This mode tries to be exact, it use the returned device orientation from Unity API
 	void ExactMode(){
 		rotation = gyro.attitude;
 		rotation *= new Quaternion(0,0,1,0);		
 		transform.localRotation = rotation;
 	}
-
+	
 	//Mode that tries to be precise in a smoothed way but less fluent, used to correct the accumulated error
 	void PreciseMode(){
 		
@@ -75,10 +75,10 @@ public class VraseHeadTracker : MonoBehaviour {
 		                                                   rotation,
 		                                                   Time.deltaTime * multiplier / 2) ;
 	}
-
+	
 	//Main mode focused on achieve a realistic and fluid movement feeling
 	void SmoothMode(){
-
+		
 		transform.RotateAround(transform.position,
 		                       transform.up,
 		                       -gyro.rotationRate.y * Mathf.Rad2Deg * Time.deltaTime);
@@ -88,22 +88,23 @@ public class VraseHeadTracker : MonoBehaviour {
 		transform.RotateAround(transform.position,
 		                       transform.right,
 		                       -gyro.rotationRate.x * Mathf.Rad2Deg * Time.deltaTime);
-
+		
 		if(!IsQuickRotation() && IsBigError())
 			PreciseMode();
-
+		
 	}
-
-	//Determines if the movement is bigger than 7 degrees
+	
+	//Determines if the movement is being fast or slow
 	bool IsQuickRotation(){
-		if(Vector3.Magnitude(gyro.attitude.eulerAngles*Time.deltaTime)>7.0f)
+		if(Vector3.Magnitude(gyro.rotationRate*Time.deltaTime)>0.1f)
 			return true;
-		else 
+		else
 			return false;		
-	}
 
-	//Returns if accumulated error is bigger than 7
+	}
+	
+	//Returns if accumulated error is bigger than the threshold
 	bool IsBigError(){
-		return ( Quaternion.Angle(gyro.attitude*(new Quaternion(0,0,1,0)), transform.localRotation) > 7.0f);
+		return ( Quaternion.Angle(gyro.attitude*(new Quaternion(0,0,1,0)), transform.localRotation) > 4.0f);
 	}
 }
